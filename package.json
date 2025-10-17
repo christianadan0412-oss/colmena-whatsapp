@@ -1,13 +1,13 @@
 {
   "name": "whatsapp-bot",
   "version": "1.0.0",
-  "description": "",
-  "main": "app.js",
+  "description": "Bot de WhatsApp para La Colmena Miel",
+  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Christian Castillo",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^2.2.0",
