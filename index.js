@@ -1,93 +1,101 @@
-// index.js
-const express = require('express');
-const bodyParser = require('body-parser');
-const { MessagingResponse } = require('twilio').twiml;
+import React, { useState } from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
 
-const app = express();
-app.use(bodyParser.urlencoded({ extended: false }));
-
-// Lista completa de productos (ejemplo reducido, puedes reemplazarla con tu lista completa)
+// Lista completa de productos
 const productos = [
-  { id: 1, nombre: "MIEL DE ABEJA a granel 1 kg", precio: 135 },
-  { id: 2, nombre: "MIEL DE ABEJA toper 1/4", precio: 60 },
-  { id: 3, nombre: "MIEL DE AGAVE a granel 1 kg", precio: 140 },
-  { id: 4, nombre: "CHOCHITO tamarindo con chile frasco 170", precio: 22 },
-  { id: 5, nombre: "Polen 100g", precio: 35 },
-  // Agrega aquí el resto de los productos de tu lista completa
+  { nombre: "CHOCHITO tamarindo con chile frasco 170", precio: 22, imagen: "https://via.placeholder.com/150" },
+  { nombre: "Miel pura 250g", precio: 50, imagen: "https://via.placeholder.com/150" },
+  { nombre: "Polen 100g", precio: 35, imagen: "https://via.placeholder.com/150" },
+  { nombre: "Miel de abeja 500g", precio: 90, imagen: "https://via.placeholder.com/150" },
+  { nombre: "Jalea real 50g", precio: 120, imagen: "https://via.placeholder.com/150" },
+  { nombre: "Propóleo 30ml", precio: 70, imagen: "https://via.placeholder.com/150" },
+  { nombre: "Miel con nuez 250g", precio: 60, imagen: "https://via.placeholder.com/150" },
+  { nombre: "Miel con jengibre 250g", precio: 65, imagen: "https://via.placeholder.com/150" },
+  { nombre: "Miel con limón 250g", precio: 55, imagen: "https://via.placeholder.com/150" },
+  { nombre: "Miel orgánica 250g", precio: 80, imagen: "https://via.placeholder.com/150" },
+  { nombre: "Miel con canela 250g", precio: 58, imagen: "https://via.placeholder.com/150" },
+  { nombre: "Miel con cacao 250g", precio: 62, imagen: "https://via.placeholder.com/150" },
+  { nombre: "Miel multifloral 250g", precio: 75, imagen: "https://via.placeholder.com/150" },
+  { nombre: "Miel con avena 250g", precio: 60, imagen: "https://via.placeholder.com/150" },
+  { nombre: "Miel con almendra 250g", precio: 68, imagen: "https://via.placeholder.com/150" },
+  { nombre: "Miel con limón y jengibre 250g", precio: 70, imagen: "https://via.placeholder.com/150" },
+  { nombre: "Miel orgánica 500g", precio: 150, imagen: "https://via.placeholder.com/150" },
+  { nombre: "Polen 250g", precio: 80, imagen: "https://via.placeholder.com/150" }
 ];
 
-// Carritos por número de usuario
-const carritos = {};
+function App() {
+  const [carrito, setCarrito] = useState([]);
 
-// Función para generar folio
-const generarFolio = () => "FOLIO-" + Math.floor(Math.random() * 100000);
-
-app.post('/whatsapp', (req, res) => {
-  const twiml = new MessagingResponse();
-  const numero = req.body.From; // número de WhatsApp del usuario
-  const msg = req.body.Body.trim().toLowerCase();
-
-  // Inicializar carrito del usuario si no existe
-  if (!carritos[numero]) carritos[numero] = [];
-
-  let respuesta = '';
-
-  if (msg === 'menu') {
-    respuesta = "📦 *Productos disponibles:*\n";
-    productos.forEach(p => {
-      respuesta += `${p.id}. ${p.nombre} - $${p.precio}\n`;
-    });
-    respuesta += "\nEnvía el número del producto para agregarlo al carrito.";
-  } 
-  else if (msg === 'carrito') {
-    const carrito = carritos[numero];
-    if (carrito.length === 0) {
-      respuesta = "Tu carrito está vacío 🛒";
+  const agregarAlCarrito = (producto) => {
+    const existe = carrito.find(item => item.nombre === producto.nombre);
+    if (existe) {
+      setCarrito(
+        carrito.map(item =>
+          item.nombre === producto.nombre
+            ? { ...item, cantidad: item.cantidad + 1 }
+            : item
+        )
+      );
     } else {
-      let total = 0;
-      respuesta = "🛒 *Tu carrito:*\n";
-      carrito.forEach((item, i) => {
-        respuesta += `${i+1}. ${item.nombre} - $${item.precio}\n`;
-        total += item.precio;
-      });
-      respuesta += `*Total:* $${total}\n`;
-      respuesta += "Envía 'vaciar' para limpiar tu carrito o 'generar' para generar tu pedido.";
+      setCarrito([...carrito, { ...producto, cantidad: 1 }]);
     }
-  } 
-  else if (msg === 'vaciar') {
-    carritos[numero] = [];
-    respuesta = "✅ Tu carrito ha sido vaciado.";
-  } 
-  else if (msg === 'generar') {
-    const carrito = carritos[numero];
-    if (carrito.length === 0) {
-      respuesta = "Tu carrito está vacío, agrega productos primero.";
-    } else {
-      let total = carrito.reduce((acc, item) => acc + item.precio, 0);
-      const folio = generarFolio();
-      respuesta = `✅ Pedido generado con folio: *${folio}*\nTotal: $${total}\nGracias por tu compra!`;
-      carritos[numero] = []; // vaciar carrito después de generar pedido
-    }
-  } 
-  else if (!isNaN(msg)) {
-    const idProducto = parseInt(msg);
-    const producto = productos.find(p => p.id === idProducto);
-    if (producto) {
-      carritos[numero].push(producto);
-      respuesta = `✅ ${producto.nombre} agregado al carrito. Envía 'carrito' para ver tu carrito.`;
-    } else {
-      respuesta = "❌ Producto no encontrado, envía 'menu' para ver la lista de productos.";
-    }
-  } 
-  else {
-    respuesta = "Hola! 👋\nEnvía 'menu' para ver los productos disponibles.";
-  }
+  };
 
-  twiml.message(respuesta);
-  res.writeHead(200, { 'Content-Type': 'text/xml' });
-  res.end(twiml.toString());
-});
+  const eliminarDelCarrito = (producto) => {
+    setCarrito(carrito.filter(item => item.nombre !== producto.nombre));
+  };
 
-app.listen(3000, () => {
-  console.log('Servidor corriendo en http://localhost:3000');
-});
+  const cambiarCantidad = (producto, delta) => {
+    setCarrito(
+      carrito.map(item =>
+        item.nombre === producto.nombre
+          ? { ...item, cantidad: Math.max(1, item.cantidad + delta) }
+          : item
+      )
+    );
+  };
+
+  const totalCarrito = carrito.reduce((total, item) => total + item.precio * item.cantidad, 0);
+
+  return (
+    <div className="container">
+      <h1>La Colmena Miel</h1>
+
+      <div className="productos">
+        {productos.map((producto, index) => (
+          <div key={index} className="producto-card">
+            <img src={producto.imagen} alt={producto.nombre} />
+            <h3>{producto.nombre}</h3>
+            <p>Precio: ${producto.precio}</p>
+            <button onClick={() => agregarAlCarrito(producto)}>Agregar al carrito</button>
+          </div>
+        ))}
+      </div>
+
+      <h2>Carrito</h2>
+      {carrito.length === 0 ? (
+        <p>El carrito está vacío</p>
+      ) : (
+        <div>
+          <ul>
+            {carrito.map((item, index) => (
+              <li key={index}>
+                {item.nombre} - ${item.precio} x {item.cantidad} = ${item.precio * item.cantidad}
+                <div className="botones-carrito">
+                  <button onClick={() => cambiarCantidad(item, 1)}>+</button>
+                  <button onClick={() => cambiarCantidad(item, -1)}>-</button>
+                  <button onClick={() => eliminarDelCarrito(item)}>Eliminar</button>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <p><strong>Total: ${totalCarrito}</strong></p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
