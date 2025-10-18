@@ -1,22 +1,4 @@
 {
-<<<<<<< HEAD
-  "name": "whatsapp-bot",
-  "version": "1.0.0",
-  "description": "Bot de WhatsApp para La Colmena Miel",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js"
-  },
-  "keywords": [],
-  "author": "Christian Castillo",
-  "license": "ISC",
-  "dependencies": {
-    "body-parser": "^2.2.0",
-    "express": "^5.1.0",
-    "qrcode-terminal": "^0.12.0",
-    "twilio": "^5.10.3",
-    "whatsapp-web.js": "^1.34.1"
-=======
   "name": "la-colmena-miel",
   "version": "1.0.0",
   "private": true,
@@ -53,6 +35,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
->>>>>>> 31c45cf (Initialize project using Create React App)
   }
 }
